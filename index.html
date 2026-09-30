@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>eFootball Tournament</title>
+<style>
+*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#0b1020;color:#fff;padding:20px}.wrap{max-width:1000px;margin:auto}.hero{background:linear-gradient(135deg,#121a33,#18264b);padding:24px;border-radius:18px;margin-bottom:18px}.hero h1{margin:0 0 6px}.hero p{margin:0;color:#aeb8d3}.card{background:#11182b;border:1px solid #273250;border-radius:18px;padding:18px;margin-bottom:18px}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.grid input{width:100%;padding:11px;border-radius:10px;border:1px solid #34415f;background:#0b1020;color:white}.btn{margin-top:12px;padding:11px 16px;border:0;border-radius:10px;background:#4f7cff;color:white;font-weight:700;cursor:pointer}.btn.danger{background:#c83b52}.table-wrap{overflow-x:auto}table{width:100%;border-collapse:collapse;min-width:760px}th,td{padding:12px 10px;border-bottom:1px solid #26314c;text-align:center}th{background:#18223b;color:#b9c4df}td:nth-child(2),th:nth-child(2){text-align:left}.rank{font-weight:800}.pts{font-weight:800;color:#72a0ff}.muted{color:#8793b1;font-size:13px}.actions button{margin:2px;padding:7px 10px;border:0;border-radius:8px;cursor:pointer}.del{background:#542333;color:#ffb4c2}.reset{background:#26314c;color:white}@media(max-width:650px){body{padding:10px}.grid{grid-template-columns:1fr 1fr}.hero h1{font-size:25px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <section class="hero"><h1>⚽ eFootball Tournament</h1><p>Live standings • 3 points win • 1 point draw</p></section>
+  <section class="card">
+    <h2>Add Player / Team</h2>
+    <div class="grid"><input id="player" placeholder="Player name"><input id="team" placeholder="Team / Club"><input id="played" type="number" min="0" placeholder="Played"><input id="wins" type="number" min="0" placeholder="Wins"><input id="draws" type="number" min="0" placeholder="Draws"><input id="losses" type="number" min="0" placeholder="Losses"><input id="gf" type="number" min="0" placeholder="Goals For"><input id="ga" type="number" min="0" placeholder="Goals Against"></div>
+    <button class="btn" onclick="addRow()">+ Add to Point Table</button>
+  </section>
+  <section class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div><h2 style="margin:0">Point Table</h2><div class="muted">Sorted by Points → Goal Difference → Goals For</div></div><button class="btn reset" onclick="resetTable()">Reset</button></div>
+    <div class="table-wrap"><table><thead><tr><th>Rank</th><th>Player</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th><th>Action</th></tr></thead><tbody id="table"></tbody></table></div>
+  </section>
+</div>
+<script>
+let data=JSON.parse(localStorage.getItem('efootballTable')||'[]');
+function n(id){return Math.max(0,Number(document.getElementById(id).value)||0)}
+function addRow(){const player=document.getElementById('player').value.trim();if(!player){alert('Player name দাও');return}const gf=n('gf'),ga=n('ga');data.push({player,team:document.getElementById('team').value.trim()||'-',played:n('played'),wins:n('wins'),draws:n('draws'),losses:n('losses'),gf,ga});save();clearForm()}
+function clearForm(){['player','team','played','wins','draws','losses','gf','ga'].forEach(x=>document.getElementById(x).value='')}
+function save(){localStorage.setItem('efootballTable',JSON.stringify(data));render()}
+function render(){const sorted=[...data].sort((a,b)=>(b.wins*3+b.draws)-(a.wins*3+a.draws)||((b.gf-b.ga)-(a.gf-a.ga))||(b.gf-a.gf));document.getElementById('table').innerHTML=sorted.map((x,i)=>{const pts=x.wins*3+x.draws,gd=x.gf-x.ga;const idx=data.indexOf(x);return `<tr><td class="rank">${i+1}</td><td>${esc(x.player)}</td><td>${esc(x.team)}</td><td>${x.played}</td><td>${x.wins}</td><td>${x.draws}</td><td>${x.losses}</td><td>${x.gf}</td><td>${x.ga}</td><td>${gd>0?'+':''}${gd}</td><td class="pts">${pts}</td><td class="actions"><button class="del" onclick="removeRow(${idx})">Delete</button></td></tr>`}).join('')||'<tr><td colspan="12" class="muted">No players added yet.</td></tr>'}
+function removeRow(i){data.splice(i,1);save()}
+function resetTable(){if(confirm('Reset পুরো point table?')){data=[];save()}}
+function esc(s){return s.replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]))}
+render();
+</script>
+</body></html>
